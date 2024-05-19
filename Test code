@@ -1,0 +1,93 @@
+const { expect } = require("chai");
+const sinon = require("sinon");
+
+const assert = {
+    fail: function fail() {
+        throw new Error("Test failure");
+    },
+    pass: function pass() {
+        return;
+    },
+    callOrder: function callOrder() {
+        return;
+    },
+    callCount: function callCount() {
+        return;
+    }
+};
+
+function exposedName(prefix, method) {
+    return prefix + method.charAt(0).toUpperCase() + method.slice(1);
+}
+
+function forEach(arr, callback) {
+    for (let i = 0; i < arr.length; i++) {
+        callback(arr[i], i);
+    }
+}
+
+function expose(target, options) {
+    if (!target) {
+        throw new TypeError("target is null or undefined");
+    }
+
+    const o = options || {};
+    const prefix = (typeof o.prefix === "undefined" && "assert") || o.prefix;
+    const includeFail = typeof o.includeFail === "undefined" || Boolean(o.includeFail);
+    const instance = this;
+
+    forEach(Object.keys(instance), function (method) {
+        if (
+            method !== "expose" &&
+            (includeFail || !/^(fail)/.test(method))
+        ) {
+            target[exposedName(prefix, method)] = instance[method];
+        }
+    });
+
+    return target;
+}
+
+describe("expose", function () {
+    it("should expose methods with prefix 'assert' by default", function () {
+        const target = {};
+        expose.call(assert, target);
+        expect(target).to.have.property("assertFail").which.is.a("function");
+        expect(target).to.have.property("assertPass").which.is.a("function");
+        expect(target).to.have.property("assertCallOrder").which.is.a("function");
+        expect(target).to.have.property("assertCallCount").which.is.a("function");
+    });
+
+    it("should expose methods with custom prefix", function () {
+        const target = {};
+        expose.call(assert, target, { prefix: "custom" });
+        expect(target).to.have.property("customFail").which.is.a("function");
+        expect(target).to.have.property("customPass").which.is.a("function");
+        expect(target).to.have.property("customCallOrder").which.is.a("function");
+        expect(target).to.have.property("customCallCount").which.is.a("function");
+    });
+
+    it("should not expose fail method by default", function () {
+        const target = {};
+        expose.call(assert, target);
+        expect(target).to.not.have.property("assertFail");
+    });
+
+    it("should expose fail method when includeFail option is true", function () {
+        const target = {};
+        expose.call(assert, target, { includeFail: true });
+        expect(target).
+Running the Test
+├── test/
+│   └── exposeTest.js
+└── package.json
+the output----------
+  expose
+    ✓ should expose methods with prefix 'assert' by default
+    ✓ should expose methods with custom prefix
+    ✓ should not expose fail method by default
+    ✓ should expose fail method when includeFail option is true
+    ✓ should throw TypeError if target is null or undefined
+
+  5 passing
+

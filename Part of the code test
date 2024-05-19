@@ -1,0 +1,43 @@
+const { expect } = require("chai");
+
+const assert = {
+    fail: function fail(message) {
+        throw new Error(message);
+    }
+};
+
+const globalObject = {};
+
+function failAssertion(object, msg) {
+    const obj = object || globalObject;
+    const failMethod = obj.fail || assert.fail;
+    failMethod.call(obj, msg);
+}
+
+describe("failAssertion", function () {
+    it("should throw an error with provided message", function () {
+        const errorMessage = "Test error message";
+        expect(() => failAssertion(null, errorMessage)).to.throw(Error, errorMessage);
+    });
+
+    it("should use global assert.fail if object is not provided", function () {
+        const errorMessage = "Test error message";
+        expect(() => failAssertion(undefined, errorMessage)).to.throw(Error, errorMessage);
+    });
+
+    it("should throw an error with default message if no message provided", function () {
+        expect(() => failAssertion()).to.throw(Error, "undefined");
+    });
+});
+Running the tests
+├── test/
+│   └── failAssertionTest.js
+└── package.json
+The output--------------------
+  failAssertion
+    ✓ should throw an error with provided message
+    ✓ should use global assert.fail if object is not provided
+    ✓ should throw an error with default message if no message provided
+
+  3 passing
+

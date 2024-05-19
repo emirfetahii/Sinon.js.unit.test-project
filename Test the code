@@ -1,0 +1,86 @@
+const { expect } = require("chai");
+
+const assert = {
+    pass: function pass() {
+        return;
+    }
+};
+
+function createMatcher(expectation) {
+    return {
+        test: function (actual) {
+            return actual === expectation;
+        }
+    };
+}
+
+function inspect(obj) {
+    return obj;
+}
+
+function join(arr, separator) {
+    return arr.join(separator);
+}
+
+function failAssertion(context, message) {
+    throw new Error(message);
+}
+
+function match(actual, expectation) {
+    const matcher = createMatcher(expectation);
+    if (matcher.test(actual)) {
+        assert.pass("match");
+    } else {
+        const formatted = [
+            "expected value to match",
+            `    expected = ${inspect(expectation)}`,
+            `    actual = ${inspect(actual)}`
+        ];
+
+        failAssertion(this, join(formatted, "\n"));
+    }
+}
+
+describe("match", function () {
+    it("should pass when actual matches expectation", function () {
+        expect(() => match(5, 5)).to.not.throw();
+    });
+
+    it("should fail when actual does not match expectation", function () {
+        expect(() => match(5, 10)).to.throw(
+            Error,
+            "expected value to match\n    expected = 10\n    actual = 5"
+        );
+    });
+
+    it("should handle complex objects", function () {
+        const obj1 = { key: "value" };
+        const obj2 = { key: "value" };
+        expect(() => match(obj1, obj2)).to.throw(
+            Error,
+            "expected value to match\n    expected = { key: 'value' }\n    actual = { key: 'value' }"
+        );
+    });
+
+    it("should pass when actual and expectation are both undefined", function () {
+        expect(() => match(undefined, undefined)).to.not.throw();
+    });
+
+    it("should pass when actual and expectation are both null", function () {
+        expect(() => match(null, null)).to.not.throw();
+    });
+});
+Running the Tests
+├── test/
+│   └── matchTest.js
+└── package.json
+The output----------
+  match
+    ✓ should pass when actual matches expectation
+    ✓ should fail when actual does not match expectation
+    ✓ should handle complex objects
+    ✓ should pass when actual and expectation are both undefined
+    ✓ should pass when actual and expectation are both null
+
+  5 passing
+

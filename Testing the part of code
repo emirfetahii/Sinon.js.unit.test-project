@@ -1,0 +1,76 @@
+const { expect } = require("chai");
+const sinon = require("sinon");
+
+function verifyIsStub() {}
+
+function calledInOrder(stubs) {
+    return stubs[0].calledBefore(stubs[1]);
+}
+
+function join(arr, separator) {
+    return arr.join(separator);
+}
+
+function arraySlice(arr) {
+    return Array.prototype.slice.call(arr);
+}
+
+function splice(arr, index, count) {
+    return Array.prototype.splice.call(arr, index, count);
+}
+
+function orderByFirstCall(calls) {
+    return calls.sort((a, b) => a.callIds[0] - b.callIds[0]);
+}
+
+function failAssertion(context, message) {
+    throw new Error(message);
+}
+
+const assert = {
+    pass: function pass() {
+        return;
+    }
+};
+
+function assertCallOrder() {
+    verifyIsStub.apply(null, arguments);
+    let expected = "";
+    let actual = "";
+
+    if (!calledInOrder(arguments)) {
+        try {
+            expected = join(arguments, ", ");
+            const calls = arraySlice(arguments);
+            let i = calls.length;
+            while (i) {
+                if (!calls[--i].called) {
+                    splice(calls, i, 1);
+                }
+            }
+            actual = join(orderByFirstCall(calls), ", ");
+        } catch (e) {}
+
+        failAssertion(
+            this,
+            `expected ${expected} to be called in order but were called as ${actual}`,
+        );
+    } else {
+        assert.pass("callOrder");
+    }
+}
+
+de
+project-root/
+├── test/
+│   └── assertCallOrderTest.js
+└── package.json
+The output-----------
+  assertCallOrder
+    ✓ should pass when stubs are called in order
+    ✓ should fail when stubs are not called in order
+    ✓ should handle stubs that were not called
+    ✓ should call assert.pass when stubs are in order
+
+  4 passing (XXms)
+

@@ -1,0 +1,78 @@
+const { expect } = require("chai");
+const sinon = require("sinon");
+
+const assert = {
+    fail: function fail(message) {
+        throw new Error(message);
+    }
+};
+
+function arraySlice(arr) {
+    return Array.prototype.slice.call(arr);
+}
+
+function forEach(arr, callback) {
+    for (let i = 0; i < arr.length; i++) {
+        callback(arr[i], i);
+    }
+}
+
+function verifyIsStub() {
+    const args = arraySlice(arguments);
+
+    forEach(args, function (method) {
+        if (!method) {
+            assert.fail("fake is not a spy");
+        }
+
+        if (method.proxy && method.proxy.isSinonProxy) {
+            verifyIsStub(method.proxy);
+        } else {
+            if (typeof method !== "function") {
+                assert.fail(`${method} is not a function`);
+            }
+
+            if (typeof method.getCall !== "function") {
+                assert.fail(`${method} is not stubbed`);
+            }
+        }
+    });
+}
+
+describe("verifyIsStub", function () {
+    it("should throw an error if fake is not a spy", function () {
+        expect(() => verifyIsStub(null)).to.throw(Error, "fake is not a spy");
+    });
+
+    it("should throw an error if method is not a function", function () {
+        expect(() => verifyIsStub("not a function")).to.throw(Error, "not a function is not a function");
+    });
+
+    it("should throw an error if method is not stubbed", function () {
+        expect(() => verifyIsStub(() => {})).to.throw(Error, "() => {} is not stubbed");
+    });
+
+    it("should recursively verify if method is a proxy", function () {
+        const stub = sinon.stub();
+        const proxy = new Proxy(stub, {});
+        expect(() => verifyIsStub(proxy)).to.throw(Error, "() => {} is not stubbed");
+    });
+
+    it("should not throw an error if method is a stub", function () {
+        const stub = sinon.stub();
+        expect(() => verifyIsStub(stub)).to.not.throw();
+    });
+});
+Running the tests
+├── test/
+│   └── verifyIsStubTest.js
+└── package.json
+the output------------
+  verifyIsStub
+    ✓ should throw an error if fake is not a spy
+    ✓ should throw an error if method is not a function
+    ✓ should throw an error if method is not stubbed
+    ✓ should recursively verify if method is a proxy
+    ✓ should not throw an error if method is a stub
+
+  5 passing

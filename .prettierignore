@@ -1,4 +1,9 @@
-
-# Ignore all HTML files, as they contain Liquid templating language
-
-*.html
+coverage/
+out/
+pkg/
+tmp/
+.sass-cache
+docs/_site/
+docs/js/
+docs/assets/js/
+vendor

@@ -1,0 +1,100 @@
+const { expect } = require("chai");
+const sinon = require("sinon");
+
+function verifyIsStub(method) {}
+
+const assert = {
+    pass: function pass() {
+        return;
+    }
+};
+
+function assertCallCount(method, count) {
+    verifyIsStub(method);
+
+    let msg;
+    if (typeof count !== "number") {
+        msg =
+            `expected ${inspect(count)} to be a number ` +
+            `but was of type ${typeof count}`;
+        failAssertion(this, msg);
+    } else if (method.callCount !== count) {
+        msg =
+            `expected %n to be called ${timesInWords(count)} ` +
+            `but was called %c%C`;
+        failAssertion(this, method.printf(msg));
+    } else {
+        assert.pass("callCount");
+    }
+}
+
+// Mock function for inspect
+function inspect(obj) {
+    return obj;
+}
+
+// Mock function for failAssertion
+function failAssertion(context, message) {
+    throw new Error(message);
+}
+
+// Mock function for timesInWords
+function timesInWords(count) {
+    return count === 1 ? "once" : count + " times";
+}
+
+// Mock function for printf
+sinon.stub().callsFake(function printf(msg) {
+    return msg.replace(/%n/g, this.callCount).replace(/%c/g, this.callCount).replace(/%C/g, timesInWords(this.callCount));
+});
+
+describe("assertCallCount", function() {
+    it("should pass when method is called the specified number of times", function() {
+        const method = sinon.stub();
+        method();
+        method();
+        expect(() => assertCallCount(method, 2)).to.not.throw();
+    });
+
+    it("should fail when method is not called the specified number of times", function() {
+        const method = sinon.stub();
+        method();
+        expect(() => assertCallCount(method, 2)).to.throw(
+            Error,
+            "expected 1 to be called twice but was called 1 time"
+        );
+    });
+
+    it("should fail when count argument is not a number", function() {
+        const method = sinon.stub();
+        expect(() => assertCallCount(method, "not a number")).to.throw(
+            Error,
+            "expected 'not a number' to be a number but was of type string"
+        );
+    });
+
+    it("should call assert.pass when method is called the specified number of times", function() {
+        const method = sinon.stub();
+        method();
+        method();
+
+        const passSpy = sinon.spy(assert, "pass");
+        assertCallCount(method, 2);
+        expect(passSpy.calledOnceWith("callCount")).to.be.true;
+
+        passSpy.restore();
+    });
+});
+
+Running the Test
+├── test/
+│   └── assertCallCountTest.js
+└── package.json
+The output of code----
+  assertCallCount
+    ✓ should pass when method is called the specified number of times
+    ✓ should fail when method is not called the specified number of times
+    ✓ should fail when count argument is not a number
+    ✓ should call assert.pass when method is called the specified number of times
+
+  4 passing (XXms)

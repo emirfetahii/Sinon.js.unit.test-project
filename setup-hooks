@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# ensure all commands are run from the root dir, for simplicity
+cd "$SCRIPT_DIR/.."
+
+# only install git hooks for people developing Sinon
+git config --replace-all core.hooksPath scripts/hooks
